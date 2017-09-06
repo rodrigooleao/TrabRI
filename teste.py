@@ -1,32 +1,41 @@
 arq = open("cf74")
 
 txt = arq.readlines()
-inAB = False
 
 docs = []
-abstract = []
+words = []
+
+interestedTags = ["TI", "MJ" , "MN" , "AB" , "EX"]
 for linha in txt:
     linha = linha.strip("\n").split(" ")
-    tag = linha[0]
+    if( linha[0] != ""):
+        tag = linha[0]
 
-    if( tag == "AB"):
-        inAB = True
-    elif( tag != "" and inAB):
-        inAB = False
-        docs.append( [k.strip(".,") for k in abstract if( k != "")])
-        abstract = []
-        
+    if( tag in interestedTags ):
+        words += linha
+    elif( tag == "PN" and words != []):
+        docs.append( [k.strip(".,:)(").lower() for k in words if( k != "")])
+        words = []
 
-    if( inAB ):
-        abstract += linha
 hashWords = dict({})
 
+i = 1
 for doc in docs:
     for palavra in doc:
         if( not palavra in hashWords):
-            hashWords[palavra] = 1
+            hashWords[palavra] = [(i , 1)]
         else:
-            hashWords[palavra] += 1
+            achou = False
+            lista = hashWords[palavra]
+            for k in range( len(lista)):
+                if( lista[k][0] == i):
+                    lista[k] = ( lista[k][0] , lista[k][1] + 1)
+                    achou = True
+                    break
+            if( not achou ):
+                lista.append( (i , 1))
+            hashWords[palavra] = lista
+    i+=1
 
 for x in hashWords:
     print( x  , " - " , hashWords[x])
