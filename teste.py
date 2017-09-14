@@ -1,6 +1,18 @@
+import math
+
 arq = open("cf74")
+arq1 = open("cf75")
+arq2 = open("cf76")
+arq3 = open("cf77")
+arq4 = open("cf78")
+arq5 = open("cf79")
 
 txt = arq.readlines()
+# txt += arq1.readlines() #Para fazer a lista com todos os docs descomentar esta parte
+# txt += arq2.readlines() # Comentado por motivos de: demora pra testar
+# txt += arq3.readlines()
+# txt += arq4.readlines()
+# txt += arq5.readlines()
 
 docs = []
 words = []
@@ -15,7 +27,7 @@ for linha in txt:
     if( tag in interestedTags ):
         words += linha
     elif( tag == "PN" and words != []):
-        docs.append( [k.strip(".,:)(").lower() for k in words if( k != "")])
+        docs.append( [k.strip(".,:)(?!;-").lower() for k in words if( k != "")])
         words = []
 
 hashWords = dict({})
@@ -42,5 +54,27 @@ for doc in docs:                                                #para cada docum
 for x in hashWords:
     print( x  , " - " , hashWords[x])
 
+ndocs = i
+hashIdf = dict({})
 
+for x in hashWords:
+    hashIdf[x] = math.log10( ndocs/len( hashWords[x]))          #Para cada elemento no Hash de palavras, calcula o log10 de ndocs sobre o tamanho da 
+                                                                #lista invertida da palavra( em qtos documentos ela aparece)
+
+
+def idf( word ):
+    return hashIdf[word]
+
+def tf( doc , word):
+    lista = hashWords[word]
+    for x in lista:
+        if( x[0] == doc):
+            return x[2]
     
+    return 0
+
+def weight( doc , word):
+    return tf( doc , word ) * idf( word )
+
+
+
