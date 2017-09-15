@@ -51,17 +51,15 @@ for doc in docs:                                                #para cada docum
             hashWords[palavra] = lista                          #o Hash da palavra verificada recebe a lista auxiliar como lista definitiva
     i+=1                                                        #incrementa i, pois veremos o próximo documento
 
-for x in hashWords:
-    print( x  , " - " , hashWords[x])
+# for x in hashWords:
+#     print( x  , " - " , hashWords[x])
 
 ndocs = i
 hashIdf = dict({})
 
 for x in hashWords:
-    hashIdf[x] = math.log10( ndocs/len( hashWords[x]))          #Para cada elemento no Hash de palavras, calcula o log10 de ndocs sobre o tamanho da 
+    hashIdf[x] = math.log( ndocs/len( hashWords[x]))          #Para cada elemento no Hash de palavras, calcula o log10 de ndocs sobre o tamanho da 
                                                                 #lista invertida da palavra( em qtos documentos ela aparece)
-
-
 def idf( word ):
     return hashIdf[word]
 
@@ -69,12 +67,52 @@ def tf( doc , word):
     lista = hashWords[word]
     for x in lista:
         if( x[0] == doc):
-            return x[2]
+            return x[1]
     
     return 0
 
 def weight( doc , word):
     return tf( doc , word ) * idf( word )
+
+def norma( doc ):
+    result = 0
+    for word in hashWords:
+        result += (weight( doc , word) ** 2)
+    
+    return math.sqrt( result )
+
+def filterHash( query ): #Filtra o hash para palavras que tem na consulta
+    result = dict({})
+
+    for word in query:
+        if( word in hashWords):
+            result[word] = hashWords[word]
+    
+    return result
+
+def TermoaTermo( query ):
+    hashQuery = filterHash( query )
+
+    acums = [0 for x in range( ndocs )]
+
+    for term in hashQuery:
+        for doc,freq in hashQuery[term]:
+            acums[doc-1] += freq * idf( term )**2
+
+
+    for i in range( len(acums)):
+        acums[i] = acums[i]/(norma(i + 1) + 1)
+
+    print(acums)
+
+query = input("\n\nDigite aqui para fazer sua busca:\n")
+query = query.split(" ")
+
+query = [ word.strip(".,:)(?!;-").lower() for word in query]
+
+TermoaTermo( query )
+
+
 
 
 
