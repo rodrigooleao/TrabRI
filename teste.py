@@ -1,4 +1,5 @@
 import math
+from heapq import *
 
 arq = open("cf74")
 arq1 = open("cf75")
@@ -8,12 +9,15 @@ arq4 = open("cf78")
 arq5 = open("cf79")
 
 txt = arq.readlines()
-# txt += arq1.readlines() #Para fazer a lista com todos os docs descomentar esta parte
-# txt += arq2.readlines() # Comentado por motivos de: demora pra testar
-# txt += arq3.readlines()
-# txt += arq4.readlines()
-# txt += arq5.readlines()
+txt += arq1.readlines() 
+txt += arq2.readlines()
+txt += arq3.readlines()
+txt += arq4.readlines()
+txt += arq5.readlines()
+#Para fazer a lista com todos os docs descomentar esta parte
+# Comentado por motivos de: demora pra testar
 
+print("[Gerando Lista Invertida...]")
 docs = []
 words = []
 
@@ -51,11 +55,9 @@ for doc in docs:                                                #para cada docum
             hashWords[palavra] = lista                          #o Hash da palavra verificada recebe a lista auxiliar como lista definitiva
     i+=1                                                        #incrementa i, pois veremos o próximo documento
 
-# for x in hashWords:
-#     print( x  , " - " , hashWords[x])
-
 ndocs = i
 hashIdf = dict({})
+hashNorma = dict({})
 
 for x in hashWords:
     hashIdf[x] = math.log( ndocs/len( hashWords[x]))          #Para cada elemento no Hash de palavras, calcula o log10 de ndocs sobre o tamanho da 
@@ -75,11 +77,15 @@ def weight( doc , word):
     return tf( doc , word ) * idf( word )
 
 def norma( doc ):
-    result = 0
-    for word in hashWords:
-        result += (weight( doc , word) ** 2)
-    
-    return math.sqrt( result )
+    if( doc in hashNorma):
+        return hashNorma[doc]
+    else:
+        result = 0
+        for word in hashWords:
+            result += (weight( doc , word) ** 2)
+        
+        hashNorma[doc] = math.sqrt( result )
+        return hashNorma[doc]
 
 def filterHash( query ): #Filtra o hash para palavras que tem na consulta
     result = dict({})
@@ -91,26 +97,45 @@ def filterHash( query ): #Filtra o hash para palavras que tem na consulta
     return result
 
 def TermoaTermo( query ):
+    print("[Filtrando Lista Invertida...]")
     hashQuery = filterHash( query )
 
     acums = [0 for x in range( ndocs )]
 
+    print("[Calculando acumuladores...]")
     for term in hashQuery:
         for doc,freq in hashQuery[term]:
             acums[doc-1] += freq * idf( term )**2
 
+    print("[Normalizando os acumuladores...]")
+    for i in range( len(acums)):
+        if( acums[i] != 0 ):
+            acums[i] = acums[i]/(norma(i + 1) + 1)
 
     for i in range( len(acums)):
-        acums[i] = acums[i]/(norma(i + 1) + 1)
+        acums[i] = ( acums[i] , i + 1)
+    
 
-    print(acums)
+    topk = []
+    k = 10
+    print("[Filtrando os topk resultados...]")
+    for x in acums:
+        if( len(topk) < k and x[0] > 0.0):
+            heappush( topk , x)
+        elif( topk and x > topk[0]):
+            heappop( topk )
+            heappush( topk , x)
+    
+    for i in range(len( topk)):
+        print( i + 1 , ". " , heappop(topk))
 
-query = input("\n\nDigite aqui para fazer sua busca:\n")
-query = query.split(" ")
+while True:
+    query = input("Digite aqui para fazer sua busca:\n")
+    query = query.split(" ")
 
-query = [ word.strip(".,:)(?!;-").lower() for word in query]
+    query = [ word.strip(".,:)(?!;-").lower() for word in query]
 
-TermoaTermo( query )
+    TermoaTermo( query )
 
 
 
