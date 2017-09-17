@@ -59,9 +59,11 @@ ndocs = i
 hashIdf = dict({})
 hashNorma = dict({})
 
+#Para cada elemento no Hash de palavras, calcula o log10 de ndocs sobre o tamanho da 
+#lista invertida da palavra( em qtos documentos ela aparece)
 for x in hashWords:
-    hashIdf[x] = math.log( ndocs/len( hashWords[x]))          #Para cada elemento no Hash de palavras, calcula o log10 de ndocs sobre o tamanho da 
-                                                                #lista invertida da palavra( em qtos documentos ela aparece)
+    hashIdf[x] = math.log( ndocs/len( hashWords[x]))
+
 def idf( word ):
     return hashIdf[word]
 
@@ -87,6 +89,10 @@ def norma( doc ):
         hashNorma[doc] = math.sqrt( result )
         return hashNorma[doc]
 
+print("[Normalizando os acumuladores...]")
+for i in range( 1 , ndocs+1 ):
+    norma(i)
+    
 def filterHash( query ): #Filtra o hash para palavras que tem na consulta
     result = dict({})
 
@@ -107,7 +113,6 @@ def TermoaTermo( query ):
         for doc,freq in hashQuery[term]:
             acums[doc-1] += freq * idf( term )**2
 
-    print("[Normalizando os acumuladores...]")
     for i in range( len(acums)):
         if( acums[i] != 0 ):
             acums[i] = acums[i]/(norma(i + 1) + 1)
