@@ -89,10 +89,10 @@ def norma( doc ):
         hashNorma[doc] = math.sqrt( result )
         return hashNorma[doc]
 
-print("[Normalizando os acumuladores...]")
+print("[Pré-calculando normas...]")
 for i in range( 1 , ndocs+1 ):
     norma(i)
-    
+
 def filterHash( query ): #Filtra o hash para palavras que tem na consulta
     result = dict({})
 
@@ -103,27 +103,29 @@ def filterHash( query ): #Filtra o hash para palavras que tem na consulta
     return result
 
 def TermoaTermo( query ):
-    print("[Filtrando Lista Invertida...]")
+    #print("[Filtrando Lista Invertida...]")
     hashQuery = filterHash( query )
 
     acums = [0 for x in range( ndocs )]
 
-    print("[Calculando acumuladores...]")
+    #print("[Calculando acumuladores...]")
     for term in hashQuery:
         for doc,freq in hashQuery[term]:
             acums[doc-1] += freq * idf( term )**2
 
+    #Dividindo tudo pela norma
     for i in range( len(acums)):
         if( acums[i] != 0 ):
             acums[i] = acums[i]/(norma(i + 1) + 1)
 
+    #associando acumulador ao respectivo documento
     for i in range( len(acums)):
         acums[i] = ( acums[i] , i + 1)
     
 
     topk = []
     k = 10
-    print("[Filtrando os topk resultados...]")
+    #print("[Filtrando os topk resultados...]")
     for x in acums:
         if( len(topk) < k and x[0] > 0.0):
             heappush( topk , x)
@@ -131,8 +133,12 @@ def TermoaTermo( query ):
             heappop( topk )
             heappush( topk , x)
     
+    results = []
     for i in range(len( topk)):
-        print( i + 1 , ". " , heappop(topk))
+        results = [heappop(topk)] + results
+    
+    for i in range( len(results)):
+        print( i + 1 , ". " , results[i][1])
 
 while True:
     query = input("Digite aqui para fazer sua busca:\n")
