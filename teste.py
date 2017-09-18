@@ -61,6 +61,7 @@ hashNorma = dict({})
 
 #Para cada elemento no Hash de palavras, calcula o log10 de ndocs sobre o tamanho da 
 #lista invertida da palavra( em qtos documentos ela aparece)
+
 for x in hashWords:
     hashIdf[x] = math.log( ndocs/len( hashWords[x]))
 
@@ -140,15 +141,33 @@ def TermoaTermo( query ):
     for i in range( len(results)):
         print( i + 1 , ". " , results[i][1])
 
+    return results
+
+def precisao (resultadoIdeal, meuResultado):
+    intersecao = 0
+    for elemento in meuResultado:
+        if elemento in resultadoIdeal:
+            intersecao +=1
+
+    return intersecao/len(meuResultado)
+
+def revocacao (resultadoIdeal, meuResultado):
+    intersecao = 0
+    for elemento in meuResultado:
+        if elemento in resultadoIdeal:
+            intersecao +=1
+
+    return intersecao/len(resultadoIdeal)
+
+# def MAPi (consulta, docObservado, meuResultado, resultadoIdeal):
+#     return 1/
+
 while True:
     query = input("Digite aqui para fazer sua busca:\n")
     query = query.split(" ")
 
     query = [ word.strip(".,:)(?!;-").lower() for word in query]
 
-    TermoaTermo( query )
-
-
-
+    meus = TermoaTermo( query )
 
 
