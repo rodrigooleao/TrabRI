@@ -18,14 +18,13 @@ txt += arq2.readlines()
 txt += arq3.readlines()
 txt += arq4.readlines()
 txt += arq5.readlines()
-#Para fazer a lista com todos os docs descomentar esta parte
-# Comentado por motivos de: demora pra testar
+
 
 print("[Gerando Lista Invertida...]")
 docs = []
 words = []
 
-interestedTags = ["AU","TI", "MJ" , "MN" , "AB" , "EX"]          #partes com informações interessantes do texto
+interestedTags = ["TI", "MJ" , "MN" , "AB" , "EX"]          #partes com informações interessantes do texto
 
 for linha in txt:
     linha = linha.strip("\n").split(" ")
@@ -48,7 +47,7 @@ i = 1                                                           #i é o numero d
 
 for doc in docs:                                                #para cada documento da lista de documentos
     for palavra in doc:                                         #para cada palavra no documento atual
-        if palavra not in stopwords:
+        if (palavra not in stopwords and palavra not in interestedTags and palavra.isalpha()):
             if( not palavra in hashWords):                          #se a palavra não estiver no Hash ainda
                 hashWords[palavra] = [(i , 1)]                      #adiciona a palavra no hash por meio de uma tupla com documento i e frequencia 1
             else:                                                   #senão, a palavra já estiver no Hash
@@ -69,7 +68,7 @@ ndocs = i
 hashIdf = dict({})
 hashNorma = dict({})
 
-#Para cada elemento no Hash de palavras, calcula o log10 de ndocs sobre o tamanho da 
+#Para cada elemento no Hash de palavras, calcula o ln de ndocs sobre o tamanho da 
 #lista invertida da palavra( em qtos documentos ela aparece)
 
 for x in hashWords:
@@ -110,36 +109,38 @@ for i in range( len(normas)):
 
 def filterHash( query ): #Filtra o hash para palavras que tem na consulta
     result = dict({})
+    query = query.split()
+    query = [x.strip(string.punctuation) for x in query ]
 
     for word in query:
         if( word in hashWords):
             result[word] = hashWords[word]
+    
     
     return result
 
 def TermoaTermo( query ):
     #print("[Filtrando Lista Invertida...]")
     hashQuery = filterHash( query )
-
+    
     acums = [0 for x in range( ndocs )]
 
     #print("[Calculando acumuladores...]")
     for term in hashQuery:
         for doc,freq in hashQuery[term]:
-            acums[doc-1] += freq * idf( term )**2
+            acums[doc-1] += freq * (idf( term )**2)
 
     #Dividindo tudo pela norma
     for i in range( len(acums)):
         if( acums[i] != 0 ):
-            acums[i] = acums[i]/(norma(i + 1) + 1)
+            acums[i] = acums[i]/(norma(i + 1))
 
     #associando acumulador ao respectivo documento
     for i in range( len(acums)):
         acums[i] = ( acums[i] , i + 1)
     
-
     topk = []
-    k = 700
+    k = 200
     #print("[Filtrando os topk resultados...]")
     for x in acums:
         if( len(topk) < k and x[0] > 0.0):
@@ -151,9 +152,6 @@ def TermoaTermo( query ):
     results = []
     for i in range(len( topk)):
         results = [heappop(topk)] + results
-    
-    # for i in range( len(results)):
-    #     print( i + 1 , ". " , results[i][1])
 
     return results
 
@@ -246,6 +244,8 @@ for k in hashQueries:
 
 mediaMAPs = guardaMAPs/len(hashQueries)
 print("\nMAP geral = " + str(mediaMAPs))
+
+
 
 # while True:
 #     query = input("Digite aqui para fazer sua busca:\n")
