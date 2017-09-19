@@ -125,7 +125,7 @@ def TermoaTermo( query ):
     
 
     topk = []
-    k = 10
+    k = 30
     #print("[Filtrando os topk resultados...]")
     for x in acums:
         if( len(topk) < k and x[0] > 0.0):
@@ -138,38 +138,106 @@ def TermoaTermo( query ):
     for i in range(len( topk)):
         results = [heappop(topk)] + results
     
-    for i in range( len(results)):
-        print( i + 1 , ". " , results[i][1])
+    # for i in range( len(results)):
+    #     print( i + 1 , ". " , results[i][1])
 
     return results
 
 def precisao (resultadoIdeal, meuResultado):
     numIguais = 0
+    conta = 1
     precisoes = []
     prec = 0
     for elemento in meuResultado:
         if elemento in resultadoIdeal:
             numIguais += 1
-            prec = numIguais / len(meuResultado)
-            precisoes.append(prec)
+        prec = numIguais / conta
+        precisoes.append(round(prec*100,2))
+        conta += 1
     return precisoes
 
 #def revocacao (resultadoIdeal, meuResultado):
 
-def MAPi (consulta, meuResultado, resultadoIdeal):
+def MAPi (resultadoIdeal, meuResultado):
     somaPrec = 0
     prec = precisao(resultadoIdeal,meuResultado)
     for i in prec:
         somaPrec += i
     return somaPrec/len(meuResultado)
-#def MAP (numDeConsultas)
 
-while True:
-    query = input("Digite aqui para fazer sua busca:\n")
-    query = query.split(" ")
+#PEGA AS CONSULTAS
+arq = open("cfquery")
 
-    query = [ word.strip(".,:)(?!;-").lower() for word in query]
+txt = arq.readlines()
+i = 0
 
-    meus = TermoaTermo( query )
+insterestedTags = ["QU", "RD"]
+query = []
+relevant = []
+
+hashQueries = dict({})
+
+for linha in txt:
+    linha = linha.strip("\n").split(" ")
+    if (linha[0] != ""):
+        tag = linha[0]
+
+    if (tag == "QU"):
+        query += linha
+
+    if (tag == "RD"):
+        relevant += linha
+
+    if (tag == "QN" and query):
+        query = " ".join([x for x in query[1:] if (x != "")])
+        relevant = [x for x in relevant[1:] if (x != "")]
+        relevant = [relevant[i] for i in range(len(relevant)) if (i % 2 == 0)]
+
+        # print("Texto da Consulta: \n" , query)
+        # print("Relevantes: \n" , relevant)
+
+        hashQueries[query] = relevant
+        query = []
+        relevant = []
+
+query = " ".join([x for x in query[1:] if (x != "")])
+relevant = [x for x in relevant[1:] if (x != "")]
+relevant = [relevant[i] for i in range(len(relevant)) if (i % 2 == 0)]
+hashQueries[query] = relevant
+
+# for k in hashQueries:
+#     print(k, " -> ", hashQueries[k])
+#FIM DO PEGA AS CONSULTAS
+
+guardaMAPs = 0
+meuResult = []
+resultIdeal = []
+for k in hashQueries:
+    Result = TermoaTermo(k)
+    for i in Result:
+        meuResult.append(i[1])
+    for i in hashQueries[k]:
+        resultIdeal.append(int(i))
+    print("Consulta: " + k)
+    print("Meus resultados: ")
+    print(meuResult)
+    print("Resultados ótimos: ")
+    print(resultIdeal)
+    map = MAPi(resultIdeal,meuResult)
+    print("MAP dessa consulta = " + str(map))
+    guardaMAPs += map
+    meuResult = []
+    resultIdeal = []
+
+mediaMAPs = guardaMAPs/len(hashQueries)
+print("\nMAP geral = " + str(mediaMAPs))
+
+# while True:
+#     query = input("Digite aqui para fazer sua busca:\n")
+#     query = query.split(" ")
+#
+#     query = [ word.strip(".,:)(?!;-").lower() for word in query]
+#
+#     meus = TermoaTermo( query )
 
 
