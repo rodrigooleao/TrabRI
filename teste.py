@@ -144,23 +144,25 @@ def TermoaTermo( query ):
     return results
 
 def precisao (resultadoIdeal, meuResultado):
-    intersecao = 0
+    numIguais = 0
+    precisoes = []
+    prec = 0
     for elemento in meuResultado:
         if elemento in resultadoIdeal:
-            intersecao +=1
+            numIguais += 1
+            prec = numIguais / len(meuResultado)
+            precisoes.append(prec)
+    return precisoes
 
-    return intersecao/len(meuResultado)
+#def revocacao (resultadoIdeal, meuResultado):
 
-def revocacao (resultadoIdeal, meuResultado):
-    intersecao = 0
-    for elemento in meuResultado:
-        if elemento in resultadoIdeal:
-            intersecao +=1
-
-    return intersecao/len(resultadoIdeal)
-
-# def MAPi (consulta, docObservado, meuResultado, resultadoIdeal):
-#     return 1/
+def MAPi (consulta, meuResultado, resultadoIdeal):
+    somaPrec = 0
+    prec = precisao(resultadoIdeal,meuResultado)
+    for i in prec:
+        somaPrec += i
+    return somaPrec/len(meuResultado)
+#def MAP (numDeConsultas)
 
 while True:
     query = input("Digite aqui para fazer sua busca:\n")
