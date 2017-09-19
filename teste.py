@@ -34,6 +34,10 @@ for linha in txt:
         docs.append( [k.strip(".,:)(?!;-").lower() for k in words if( k != "")])
         words = []
 
+docs.append([k.strip(".,:)(?!;-").lower() for k in words if( k != "")])
+words = []
+
+
 hashWords = dict({})
 
 i = 1                                                           #i é o numero do documento atual que está sendo verificado
@@ -54,6 +58,7 @@ for doc in docs:                                                #para cada docum
                 lista.append( (i , 1))                          #adicionamos na lista auxiliar uma tupla com o i atual e frquencia 1
             hashWords[palavra] = lista                          #o Hash da palavra verificada recebe a lista auxiliar como lista definitiva
     i+=1                                                        #incrementa i, pois veremos o próximo documento
+
 
 ndocs = i
 hashIdf = dict({})
@@ -91,8 +96,12 @@ def norma( doc ):
         return hashNorma[doc]
 
 print("[Pré-calculando normas...]")
-for i in range( 1 , ndocs+1 ):
-    norma(i)
+normas = open("normas.dat")
+normas = normas.readlines()
+
+for i in range( len(normas)):
+    hashNorma[i+1] = float( normas[i])
+
 
 def filterHash( query ): #Filtra o hash para palavras que tem na consulta
     result = dict({})
@@ -218,7 +227,7 @@ for k in hashQueries:
         meuResult.append(i[1])
     for i in hashQueries[k]:
         resultIdeal.append(int(i))
-    print("Consulta: " + k)
+    print("\n\nConsulta: " + k)
     print("Meus resultados: ")
     print(meuResult)
     print("Resultados ótimos: ")
