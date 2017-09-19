@@ -1,5 +1,9 @@
 import math
 from heapq import *
+import string
+
+stopwords = open("stopwords","r")
+stopwords = stopwords.read().splitlines()
 
 arq = open("cf74")
 arq1 = open("cf75")
@@ -31,10 +35,10 @@ for linha in txt:
     if( tag in interestedTags ):
         words += linha
     elif( tag == "PN" and words != []):
-        docs.append( [k.strip(".,:)(?!;-").lower() for k in words if( k != "")])
+        docs.append( [k.strip(string.punctuation).lower() for k in words if( k != "")])
         words = []
 
-docs.append([k.strip(".,:)(?!;-").lower() for k in words if( k != "")])
+docs.append([k.strip(string.punctuation).lower() for k in words if( k != "")])
 words = []
 
 
@@ -44,19 +48,20 @@ i = 1                                                           #i é o numero d
 
 for doc in docs:                                                #para cada documento da lista de documentos
     for palavra in doc:                                         #para cada palavra no documento atual
-        if( not palavra in hashWords):                          #se a palavra não estiver no Hash ainda
-            hashWords[palavra] = [(i , 1)]                      #adiciona a palavra no hash por meio de uma tupla com documento i e frequencia 1
-        else:                                                   #senão, a palavra já estiver no Hash
-            achou = False                                       #não achou
-            lista = hashWords[palavra]                          #lista auxiliar recebe a lista da palavra atual no Hash
-            for k in range( len(lista)):                        #para cada tupla na lista
-                if( lista[k][0] == i):                          #se o primeiro elemento da tupla atual for igual ao i, a palavra já apareceu no documento antes
-                    lista[k] = ( lista[k][0] , lista[k][1] + 1) #então substituimos essa tupla por uma tupla com o mesmo i e a frequencia da tupla anterior +1
-                    achou = True                                #achou
-                    break                                       #fim
-            if( not achou ):                                    #se a palavra ainda não foi achada, ela ainda não tinha aparecido no documento antes, então
-                lista.append( (i , 1))                          #adicionamos na lista auxiliar uma tupla com o i atual e frquencia 1
-            hashWords[palavra] = lista                          #o Hash da palavra verificada recebe a lista auxiliar como lista definitiva
+        if palavra not in stopwords:
+            if( not palavra in hashWords):                          #se a palavra não estiver no Hash ainda
+                hashWords[palavra] = [(i , 1)]                      #adiciona a palavra no hash por meio de uma tupla com documento i e frequencia 1
+            else:                                                   #senão, a palavra já estiver no Hash
+                achou = False                                       #não achou
+                lista = hashWords[palavra]                          #lista auxiliar recebe a lista da palavra atual no Hash
+                for k in range( len(lista)):                        #para cada tupla na lista
+                    if( lista[k][0] == i):                          #se o primeiro elemento da tupla atual for igual ao i, a palavra já apareceu no documento antes
+                        lista[k] = ( lista[k][0] , lista[k][1] + 1) #então substituimos essa tupla por uma tupla com o mesmo i e a frequencia da tupla anterior +1
+                        achou = True                                #achou
+                        break                                       #fim
+                if( not achou ):                                    #se a palavra ainda não foi achada, ela ainda não tinha aparecido no documento antes, então
+                    lista.append( (i , 1))                          #adicionamos na lista auxiliar uma tupla com o i atual e frquencia 1
+                hashWords[palavra] = lista                          #o Hash da palavra verificada recebe a lista auxiliar como lista definitiva
     i+=1                                                        #incrementa i, pois veremos o próximo documento
 
 
@@ -134,7 +139,7 @@ def TermoaTermo( query ):
     
 
     topk = []
-    k = 30
+    k = 700
     #print("[Filtrando os topk resultados...]")
     for x in acums:
         if( len(topk) < k and x[0] > 0.0):
@@ -161,7 +166,7 @@ def precisao (resultadoIdeal, meuResultado):
         if elemento in resultadoIdeal:
             numIguais += 1
         prec = numIguais / conta
-        precisoes.append(round(prec*100,2))
+        precisoes.append(prec)
         conta += 1
     return precisoes
 
@@ -187,7 +192,7 @@ relevant = []
 hashQueries = dict({})
 
 for linha in txt:
-    linha = linha.strip("\n").split(" ")
+    linha = linha.strip("\n" + string.punctuation).split(" ")
     if (linha[0] != ""):
         tag = linha[0]
 
@@ -221,6 +226,7 @@ hashQueries[query] = relevant
 guardaMAPs = 0
 meuResult = []
 resultIdeal = []
+
 for k in hashQueries:
     Result = TermoaTermo(k)
     for i in Result:
