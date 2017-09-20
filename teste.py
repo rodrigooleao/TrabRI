@@ -27,19 +27,6 @@ def norma(doc):
         hashNorma[doc] = math.sqrt(result)
         return hashNorma[doc]
 
-
-def filterHash(query):  # Filtra o hash para palavras que tem na consulta
-    result = dict({})
-    query = query.split()
-    query = [x.strip(string.punctuation) for x in query]
-    query = [x for x in query if x not in stopwords]
-
-    for word in query:
-        if (word in hashWords):
-            result[word] = hashWords[word]
-
-    return result
-
 def insertionSort(alist):
    for index in range(1,len(alist)):
 
@@ -73,11 +60,11 @@ def TermoaTermo(query):
         acums[i] = (acums[i], i + 1)
 
     topk = []
-    k = 10#len(acums)
+    k = len(acums)
 
     # print("[Filtrando os topk resultados...]")
     for x in acums:
-        if (len(topk) < k and x[0] > 0.0):
+        if (len(topk) < k and x[0] > 0.1):
             heappush(topk, x)
         elif (topk and x > topk[0]):
             heappop(topk)
@@ -88,6 +75,18 @@ def TermoaTermo(query):
         results = [heappop(topk)] + results
 
     return results
+
+def filterHash(query):  # Filtra o hash para palavras que tem na consulta
+    result = dict({})
+    query = query.split()
+    query = [x.strip(string.punctuation) for x in query]
+    query = [x for x in query if x not in stopwords]
+
+    for word in query:
+        if (word in hashWords):
+            result[word] = hashWords[word]
+
+    return result
 
 def precisao(resultadoIdeal, meuResultado):
     numIguais = 0
@@ -145,6 +144,7 @@ def calculaNDCG(meu,ideal):
         return meu/ideal
     else:
         return 0
+
 stopwords = open("stopwords","r")
 stopwords = stopwords.read().splitlines()
 
@@ -308,27 +308,9 @@ for k in hashQueries:
 #calcula o DCG
     DCG = calculaDCG(meuCG)
     IDCG = calculaDCG(meuICG)
-    # print("DCG : " + str(DCG))
-    # print("IDCG: " + str(IDCG))
-    # a = input()
 #calculando o NDCG
     oNDCG = calculaNDCG(DCG,IDCG)
     NDCGs.append(oNDCG)
-    # print("NDCG: " + str(oNDCG))
-    # a = input()
-    # CG = [G[0]]
-    # for i in range (1, len(G)):
-    #     CG.append(G[i-1] + G[i])
-    #
-    # IDCG = G[::-1]
-    # for i in range(1,len(G)):
-    #     IDCG[i] = (IDCG[i]/math.log(i+1,2)) + IDCG[i-1]
-    #
-    # DCG = [G[0]]
-    # for i in range(1,len(G)):
-    #     DCG.append((G[i]/math.log(i+1,2))+DCG[i-1])
-
-    #a = input()
     # print("\n\nConsulta: " + k)
     # print("DCG : ")
     # print(DCG)
@@ -342,7 +324,6 @@ for k in hashQueries:
     meuResult = []
     resultIdeal = []
     G = []
-
 mediaMAPs = guardaMAPs/len(hashQueries)
 mediaNDCG = sum(NDCGs)/len(hashQueries)
 print("\nMAP médio = " + str(mediaMAPs))
