@@ -46,7 +46,7 @@ def insertionSort(alist):
      currentvalue = alist[index]
      position = index
 
-     while position>0 and alist[position-1][0]<currentvalue[0]:
+     while position>0 and alist[position-1]<currentvalue:
          alist[position]=alist[position-1]
          position = position-1
 
@@ -73,7 +73,7 @@ def TermoaTermo(query):
         acums[i] = (acums[i], i + 1)
 
     topk = []
-    k = 5
+    k = len(acums)
 
     # print("[Filtrando os topk resultados...]")
     for x in acums:
@@ -89,7 +89,6 @@ def TermoaTermo(query):
 
     return results
 
-
 def precisao(resultadoIdeal, meuResultado):
     numIguais = 0
     conta = 1
@@ -103,7 +102,6 @@ def precisao(resultadoIdeal, meuResultado):
         conta += 1
     return precisoes
 
-
 # def revocacao (resultadoIdeal, meuResultado):
 
 def MAPi(resultadoIdeal, meuResultado):
@@ -112,7 +110,6 @@ def MAPi(resultadoIdeal, meuResultado):
     for i in prec:
         somaPrec += i
     return somaPrec / len(meuResultado)
-
 
 def moda(lista):
     hashinho = dict({0: 0,
@@ -131,7 +128,23 @@ def moda(lista):
                 maior = elemento
     return maior
 
+def calculaCG(lista):
+    aux = [lista[0]]
+    for i in range(1,len(lista)):
+        aux.append(lista[i] + lista[i-1])
+    return aux
 
+def calculaDCG(lista):
+    aux = [lista[0]]
+    for i in range(1,len(lista)):
+        aux.append((lista[i]/math.log(i+1,2))+aux[i-1])
+    return aux
+
+def calculaNDCG(meu,ideal):
+    aux = []
+    for i in range(0,len(meu)):
+         aux.append(meu[i]/ideal[i])
+    return aux
 
 stopwords = open("stopwords","r")
 stopwords = stopwords.read().splitlines()
@@ -155,7 +168,7 @@ print("[Gerando Lista Invertida...]")
 docs = []
 words = []
 
-interestedTags = ["TI", "MJ" , "MN" , "AB" , "EX"]          #partes com informações interessantes do texto
+interestedTags = ["AU", "TI", "MJ" , "MN" , "AB" , "EX"]          #partes com informações interessantes do texto
 
 #lê o arquivo
 for linha in txt:
@@ -269,46 +282,61 @@ hashQueries[query] = relevant
 guardaMAPs = 0
 meuResult = []
 resultIdeal = []
-G = []
+G = [] #guarda a relevância de cada documento na ordem que eles foram retornados
+
 #faz o processo para cada consulta sugerida no arquivo cfquery
 for k in hashQueries:
     Result = TermoaTermo(k)             #aplica o termo a termo na cconsulta k, guarda o resultado em result
+
     for i in Result:
         meuResult.append(i[1])          #meu resultado são os documentos retornados pelo termo a termo
+
     for i in hashQueries[k]:
         resultIdeal.append(int(i))
 
-#calculo do DCG
+#calculo do G, vetor que guarda os valores das relenvacia na ordem que os documentos aparecem
     for l in meuResult:
         if l in hashRelevancia:
             G.append(hashRelevancia[l])
         if l not in hashRelevancia:
             G.append(0)
-
-    CG = [G[0]]
-    for i in range (1, len(G)):
-        CG.append(G[i-1] + G[i])
-
-    IDCG = G[::-1]
-    for i in range(1,len(G)):
-        IDCG[i] = (IDCG[i]/math.log(i+1,2)) + IDCG[i-1]
-
-    DCG = [G[0]]
-    for i in range(1,len(G)):
-        DCG.append((G[i]/math.log(i+1,2))+DCG[i-1])
+#calcula CG
+    meuCG = calculaCG(G)
+#calculando IG, que é o vetor G ideal para o resultado obtido
+    IG = G
+    insertionSort(IG)
+    meuICG = calculaCG(IG)
+#calcula o DCG
+    DCG = calculaDCG(meuCG)
+    IDCG = calculaDCG(meuICG)
+#calculando o NDCG
+    oNDCG = calculaNDCG(DCG,IDCG)
+    print(oNDCG)
+    a = input()
+    # CG = [G[0]]
+    # for i in range (1, len(G)):
+    #     CG.append(G[i-1] + G[i])
+    #
+    # IDCG = G[::-1]
+    # for i in range(1,len(G)):
+    #     IDCG[i] = (IDCG[i]/math.log(i+1,2)) + IDCG[i-1]
+    #
+    # DCG = [G[0]]
+    # for i in range(1,len(G)):
+    #     DCG.append((G[i]/math.log(i+1,2))+DCG[i-1])
 
     NDCG = 0
 
     #a = input()
-    print("\n\nConsulta: " + k)
-    print("DCG : ")
-    print(DCG)
-    print("Meus resultados: ")
-    print(meuResult)
-    print("Resultados ótimos: ")
-    print(resultIdeal)
+    # print("\n\nConsulta: " + k)
+    # print("DCG : ")
+    # print(DCG)
+    # print("Meus resultados: ")
+    # print(meuResult)
+    # print("Resultados ótimos: ")
+    # print(resultIdeal)
     map = MAPi(resultIdeal,meuResult)
-    print("MAP dessa consulta = " + str(map))
+    # print("MAP dessa consulta = " + str(map))
     guardaMAPs += map
     meuResult = []
     resultIdeal = []
@@ -316,6 +344,7 @@ for k in hashQueries:
 
 mediaMAPs = guardaMAPs/len(hashQueries)
 print("\nMAP geral = " + str(mediaMAPs))
+
 
 # while True:
 #     query = input("Digite aqui para fazer sua busca:\n")
