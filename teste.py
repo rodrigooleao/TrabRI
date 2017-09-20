@@ -73,7 +73,7 @@ def TermoaTermo(query):
         acums[i] = (acums[i], i + 1)
 
     topk = []
-    k = len(acums)
+    k = 10#len(acums)
 
     # print("[Filtrando os topk resultados...]")
     for x in acums:
@@ -135,17 +135,16 @@ def calculaCG(lista):
     return aux
 
 def calculaDCG(lista):
-    aux = [lista[0]]
+    aux = lista[0]
     for i in range(1,len(lista)):
-        aux.append((lista[i]/math.log(i+1,2))+aux[i-1])
+        aux = lista[i]/math.log(i+1,2) + aux
     return aux
 
 def calculaNDCG(meu,ideal):
-    aux = []
-    for i in range(0,len(meu)):
-         aux.append(meu[i]/ideal[i])
-    return aux
-
+    if ideal > 0:
+        return meu/ideal
+    else:
+        return 0
 stopwords = open("stopwords","r")
 stopwords = stopwords.read().splitlines()
 
@@ -278,7 +277,7 @@ relevant = [relevant[i] for i in range(len(relevant)) if (i % 2 == 0)]
 hashQueries[query] = relevant
 
 #FIM DO PEGA AS CONSULTAS
-
+NDCGs = []
 guardaMAPs = 0
 meuResult = []
 resultIdeal = []
@@ -309,10 +308,14 @@ for k in hashQueries:
 #calcula o DCG
     DCG = calculaDCG(meuCG)
     IDCG = calculaDCG(meuICG)
+    # print("DCG : " + str(DCG))
+    # print("IDCG: " + str(IDCG))
+    # a = input()
 #calculando o NDCG
     oNDCG = calculaNDCG(DCG,IDCG)
-    print(oNDCG)
-    a = input()
+    NDCGs.append(oNDCG)
+    # print("NDCG: " + str(oNDCG))
+    # a = input()
     # CG = [G[0]]
     # for i in range (1, len(G)):
     #     CG.append(G[i-1] + G[i])
@@ -324,8 +327,6 @@ for k in hashQueries:
     # DCG = [G[0]]
     # for i in range(1,len(G)):
     #     DCG.append((G[i]/math.log(i+1,2))+DCG[i-1])
-
-    NDCG = 0
 
     #a = input()
     # print("\n\nConsulta: " + k)
@@ -340,11 +341,12 @@ for k in hashQueries:
     guardaMAPs += map
     meuResult = []
     resultIdeal = []
-    CG = []
+    G = []
 
 mediaMAPs = guardaMAPs/len(hashQueries)
-print("\nMAP geral = " + str(mediaMAPs))
-
+mediaNDCG = sum(NDCGs)/len(hashQueries)
+print("\nMAP médio = " + str(mediaMAPs))
+print("NDCG médio = " + str(mediaNDCG))
 
 # while True:
 #     query = input("Digite aqui para fazer sua busca:\n")

@@ -12,4 +12,4 @@ def insertionSort(alist):
 
 a = [1,4,6,7,8,9,0,7,4,0]
 insertionSort(a)
-print(a)
+print(sum(a))
