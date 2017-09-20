@@ -1,24 +1,20 @@
 import math
 from heapq import *
 import string
-
+import math
 
 def idf(word):
     return hashIdf[word]
-
 
 def tf(doc, word):
     lista = hashWords[word]
     for x in lista:
         if (x[0] == doc):
             return x[1]
-
     return 0
-
 
 def weight(doc, word):
     return tf(doc, word) * idf(word)
-
 
 def norma(doc):
     if (doc in hashNorma):
@@ -173,31 +169,30 @@ for linha in txt:
         docs.append( [k.strip(string.punctuation).lower() for k in words if( k != "")])
         words = []
 
-docs.append([k.strip(string.punctuation).lower() for k in words if( k != "")])
-words = []
-
+# docs.append([k.strip(string.punctuation).lower() for k in words if( k != "")])
+# words = []
 
 hashWords = dict({})
 
-i = 1                                                               #i é o numero do documento atual que está sendo verificado
+i = 1                                                               
 #cria a lista invertida
-for doc in docs:                                                    #para cada documento da lista de documentos
-    for palavra in doc:                                             #para cada palavra no documento atual
+for doc in docs:
+    for palavra in doc:
         if (palavra not in stopwords and palavra not in interestedTags and palavra.isalpha()):
-            if( not palavra in hashWords):                          #se a palavra não estiver no Hash ainda
-                hashWords[palavra] = [(i , 1)]                      #adiciona a palavra no hash por meio de uma tupla com documento i e frequencia 1
-            else:                                                   #senão, a palavra já estiver no Hash
-                achou = False                                       #não achou
-                lista = hashWords[palavra]                          #lista auxiliar recebe a lista da palavra atual no Hash
-                for k in range( len(lista)):                        #para cada tupla na lista
-                    if( lista[k][0] == i):                          #se o primeiro elemento da tupla atual for igual ao i, a palavra já apareceu no documento antes
-                        lista[k] = ( lista[k][0] , lista[k][1] + 1) #então substituimos essa tupla por uma tupla com o mesmo i e a frequencia da tupla anterior +1
-                        achou = True                                #achou
-                        break                                       #fim
-                if( not achou ):                                    #se a palavra ainda não foi achada, ela ainda não tinha aparecido no documento antes, então
-                    lista.append( (i , 1))                          #adicionamos na lista auxiliar uma tupla com o i atual e frquencia 1
-                hashWords[palavra] = lista                          #o Hash da palavra verificada recebe a lista auxiliar como lista definitiva
-    i+=1                                                            #incrementa i, pois veremos o próximo documento
+            if( not palavra in hashWords):
+                hashWords[palavra] = [(i , 1)]
+            else:
+                achou = False
+                lista = hashWords[palavra]
+                for k in range( len(lista)):
+                    if( lista[k][0] == i):
+                        lista[k] = ( lista[k][0] , lista[k][1] + 1)
+                        achou = True
+                        break
+                if( not achou ):
+                    lista.append( (i , 1))
+                hashWords[palavra] = lista
+    i+=1
 
 
 ndocs = i
@@ -274,8 +269,7 @@ hashQueries[query] = relevant
 guardaMAPs = 0
 meuResult = []
 resultIdeal = []
-CG = []
-
+G = []
 #faz o processo para cada consulta sugerida no arquivo cfquery
 for k in hashQueries:
     Result = TermoaTermo(k)             #aplica o termo a termo na cconsulta k, guarda o resultado em result
@@ -284,19 +278,31 @@ for k in hashQueries:
     for i in hashQueries[k]:
         resultIdeal.append(int(i))
 
+#calculo do DCG
     for l in meuResult:
         if l in hashRelevancia:
-            CG.append(hashRelevancia[l])
+            G.append(hashRelevancia[l])
         if l not in hashRelevancia:
-            CG.append(0)
+            G.append(0)
 
-    for i in range (1, len(CG)):
-        CG[i] = CG[i-1] + CG[i]
+    CG = [G[0]]
+    for i in range (1, len(G)):
+        CG.append(G[i-1] + G[i])
+
+    IDCG = G[::-1]
+    for i in range(1,len(G)):
+        IDCG[i] = (IDCG[i]/math.log(i+1,2)) + IDCG[i-1]
+
+    DCG = [G[0]]
+    for i in range(1,len(G)):
+        DCG.append((G[i]/math.log(i+1,2))+DCG[i-1])
+
+    NDCG = 0
 
     #a = input()
     print("\n\nConsulta: " + k)
-    print("CG : ")
-    print(CG)
+    print("DCG : ")
+    print(DCG)
     print("Meus resultados: ")
     print(meuResult)
     print("Resultados ótimos: ")
@@ -310,8 +316,6 @@ for k in hashQueries:
 
 mediaMAPs = guardaMAPs/len(hashQueries)
 print("\nMAP geral = " + str(mediaMAPs))
-
-
 
 # while True:
 #     query = input("Digite aqui para fazer sua busca:\n")
