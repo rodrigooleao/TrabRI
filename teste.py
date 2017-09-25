@@ -64,7 +64,7 @@ def TermoaTermo(query):
 
     # print("[Filtrando os topk resultados...]")
     for x in acums:
-        if (len(topk) < k and x[0] > 0.1):
+        if (len(topk) < k and x[0] > 0.0):
             heappush(topk, x)
         elif (topk and x > topk[0]):
             heappop(topk)
@@ -96,8 +96,8 @@ def precisao(resultadoIdeal, meuResultado):
     for elemento in meuResultado:
         if elemento in resultadoIdeal:
             numIguais += 1
-        prec = numIguais / conta
-        precisoes.append(prec)
+            prec = numIguais / conta
+            precisoes.append(prec)
         conta += 1
     return precisoes
 
@@ -108,7 +108,7 @@ def MAPi(resultadoIdeal, meuResultado):
     prec = precisao(resultadoIdeal, meuResultado)
     for i in prec:
         somaPrec += i
-    return somaPrec / len(meuResultado)
+    return somaPrec / len(resultadoIdeal)
 
 def moda(lista):
     hashinho = dict({0: 0,
@@ -156,7 +156,7 @@ arq4 = open("cf78")
 arq5 = open("cf79")
 
 txt = arq.readlines()
-txt += arq1.readlines() 
+txt += arq1.readlines()
 txt += arq2.readlines()
 txt += arq3.readlines()
 txt += arq4.readlines()
@@ -186,7 +186,7 @@ for linha in txt:
 
 hashWords = dict({})
 
-i = 1                                                               
+i = 1
 #cria a lista invertida
 for doc in docs:
     for palavra in doc:
@@ -211,7 +211,7 @@ ndocs = i
 hashIdf = dict({})
 hashNorma = dict({})
 
-#Para cada elemento no Hash de palavras, calcula o ln de ndocs sobre o tamanho da 
+#Para cada elemento no Hash de palavras, calcula o ln de ndocs sobre o tamanho da
 #lista invertida da palavra( em qtos documentos ela aparece)
 for x in hashWords:
     hashIdf[x] = math.log( ndocs/len( hashWords[x]))
@@ -336,5 +336,3 @@ print("NDCG médio = " + str(mediaNDCG))
 #     query = [ word.strip(".,:)(?!;-").lower() for word in query]
 #
 #     meus = TermoaTermo( query )
-
-
