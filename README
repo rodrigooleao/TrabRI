@@ -33,9 +33,14 @@ CFC:
 
 	-teste.py
 
+Utilizamos a biblioteca nltk do python para realizar o stemming. 
+
+*O arquivo TrabRI.py não possui stemming
+*O arquivo TrabRIMelhoria.py possui a stemming
+
 Como executar:
 
-"python3 teste.py"
+"python3 TrabRIMelhoria.py"
 	
 	
 
